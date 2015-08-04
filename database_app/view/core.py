@@ -1,11 +1,17 @@
 # John Dunham
+# Defines the core of the view component for this application.
+ 
 import Tkinter as tk
 from tkFileDialog import *
+ 
+#
+# TODO design a proper MVC pattern for this, it may be to learn python, but I can do it right.
+#
 
-class ApplicationView(tk.Frame):
+class MainWindow(tk.Frame):
 	"""The Main Application Window"""
 	
-	def __init__(self, master):
+	def __init__(self, master):	
 		menubar = tk.Menu(master)
 		
 		
@@ -34,8 +40,8 @@ class ApplicationView(tk.Frame):
 
 	def askopenfile(self):
 		"""Returns an opened file in read mode."""
-
-		return askopenfilename()
+		filename= askopenfilename(defaultextension='.csv')
+		print filename		 
 		
 		
 		
