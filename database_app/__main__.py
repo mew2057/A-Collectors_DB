@@ -1,15 +1,12 @@
 # John Dunham
-
 import sys
+import Tkinter as tk
+from tkFileDialog import askopenfilename
+import view.core
 
-def main(args=None):
-	"""The main routine"""
-	if args is None:
-		args = sys.argv[1:]
-		
-	print("This is the main routine")
-	
 	 
 # This runs main.
-if __name__ == "__main__":
-	main()
+if __name__ == '__main__':
+	root = tk.Tk() # Root Widget.
+	app = view.core.ApplicationView(root)     # Setup the Chips to let them fall.
+	root.mainloop()     # Enter the Tkinter loop.
