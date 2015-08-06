@@ -1,7 +1,6 @@
 # John Dunham
 import sys
-import Tkinter as tk
-from tkFileDialog import askopenfilename
+import tkinter as tk
 import control.core as controller
 
 	 
