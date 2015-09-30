@@ -10,5 +10,15 @@ class Application():
 		self.view  = view.View(self)
 		self.model = model.Model(self)
 		
+	def importcsv(self, file):
+		self.model.importcsv(file)
+		
+	def dbmissing(self, path, filename):
+		return self.view.newfile(path, filename, '.db')
+	
+	def opendb(self, file):
+		self.model.opendb(file)
+		
+		
 	
 	

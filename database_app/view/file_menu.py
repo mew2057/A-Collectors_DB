@@ -1,13 +1,13 @@
 # John Dunham
 #
 #
-
-import view.v_core as view
+import tkinter as tk
 from tkinter import filedialog
 
 class FileMenu(tk.Menu):
 
 	def __init__(self, parent):
+		parent.add_command(label="New", command=self.askopenfile)
 		pass
 		
 	def InitFileMenu():
