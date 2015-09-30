@@ -34,9 +34,9 @@ class Model():
 			
 		self.db       = sqlite3.connect(self.databasefile)
 		self.dbcursor = self.db.cursor()
-		
-		print(self.dbcursor.execute('SELECT DISTINCT Name FROM'+ self.defaulttable +";").fetchall())
-		
+		#PRAGMA table_info(tablename
+		#print(self.dbcursor.execute("PRAGMA table_info(collection);").fetchall())
+		print(self.dbcursor.execute("SELECT DISTINCT Type from collection;").fetchall())
 		
 		
 	def importcsv(self, filename):
@@ -99,8 +99,7 @@ class Model():
 			
 			keystring = keystring[:-1] + ''')'''
 			insertstring = insertstring[:-1] + ''')'''
-			
-			print('''CREATE TABLE '''+ self.defaulttable + ''' ''' + keystring)
+
 			# This is probably terrible practice.
 			self.dbcursor.execute('''CREATE TABLE '''+ self.defaulttable + ''' ''' + keystring)	
 			
@@ -109,7 +108,6 @@ class Model():
 			# Populate the table.
 			# TODO Tables based on Type?
 			for row in collectionreader:
-				print(row)
 				try:
 					self.dbcursor.execute("INSERT INTO " + self.defaulttable + " VALUES " +insertstring, row )
 				except:
