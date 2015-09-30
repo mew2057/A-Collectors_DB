@@ -52,7 +52,10 @@ class Model():
 		if not self.databasefile:
 			return
 		
-		os.remove(self.databasefile)
+		try:
+			os.remove(self.databasefile)
+		except:
+			pass
 		
 		# If the db points to something attempt to close the connection.
 		if self.db : 
@@ -97,6 +100,7 @@ class Model():
 			keystring = keystring[:-1] + ''')'''
 			insertstring = insertstring[:-1] + ''')'''
 			
+			print('''CREATE TABLE '''+ self.defaulttable + ''' ''' + keystring)
 			# This is probably terrible practice.
 			self.dbcursor.execute('''CREATE TABLE '''+ self.defaulttable + ''' ''' + keystring)	
 			
@@ -105,10 +109,11 @@ class Model():
 			# Populate the table.
 			# TODO Tables based on Type?
 			for row in collectionreader:
+				print(row)
 				try:
 					self.dbcursor.execute("INSERT INTO " + self.defaulttable + " VALUES " +insertstring, row )
 				except:
-					pass
+					print("import failed")
 					
 			self.db.commit()
 
