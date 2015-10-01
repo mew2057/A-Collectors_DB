@@ -55,9 +55,6 @@ class View():
 		
 		self.category_frame.pack()
 		
-		# Show all button.
-		self.show_all_btn=Button(self.category_frame, text="Show All", command=self.controller.open_table).pack()
-		
 	def show_collections(self, collections):
 		# First clear the previous collection list.		
 		if self.category_list:
@@ -90,7 +87,6 @@ class View():
 		self.entry_list=tk.Listbox(self.category_frame)
 		
 		for entry in entries:
-			print(entry[1])
 			# Make this better!
 			self.entry_list.insert(END, entry[4])
 		

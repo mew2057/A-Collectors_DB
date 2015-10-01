@@ -21,20 +21,21 @@ class Model():
 		self.dbcursor={}
 		
 		# The default table name.
-		self.defaulttable='No_Type'
-		
-		# Show all option for the table
-		self.all_table='Show All'
+		self.default_table='Collection'
+		self.location_table="Location"
+		self.collection_classifier='Type'
 		
 		self.current_table='*'
 		
 		self.controller=control
 	
 	# Queries the database for all tables.
-	def list_tables(self):
-		return self.dbcursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite%';").fetchall()
+	def list_collection(self):
+		collections  = self.dbcursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite%';").fetchall()
+		collections += self.dbcursor.execute("SELECT DISTINCT "+self.collection_classifier+ " from " + self.default_table).fetchall()
+		return collections
 	
-	def set_active_table(self, table_name='all'):
+	def set_active_table(self, table_name):
 		if not self.dbcursor:
 			return
 			
@@ -62,7 +63,7 @@ class Model():
 	def import_csv(self, filename):
 		
 		# Make sure there's a database file before populating a database.
-		self.databasefile = self.controller.dbmissing( os.path.dirname(filename), os.path.basename(filename)[:-4] + '.db' )
+		self.databasefile = self.controller.db_missing( os.path.dirname(filename), os.path.basename(filename)[:-4] + '.db' )
 		self.databasedir  = os.path.dirname(self.databasefile)
 		
 		# If no file was created, abandon ship.
@@ -105,9 +106,10 @@ class Model():
 					type="NUMBER" # this should be INTEGER
 				elif datatype == "BOOLEAN":
 					type="INTEGER"
-				elif datatype == "TABLE": # We shouldn't create a table for this.
+				elif datatype == "TABLE": 
+					self.collection_classifier = field
 					tableindex=fieldnames.index(field)
-					continue 
+					type="TEXT"
 					
 				
 				# This is a hack!
@@ -122,44 +124,43 @@ class Model():
 			keystring = keystring[:-1] + ''')'''
 			insertstring = insertstring[:-1] + ''')'''
 			
-
 			# This is probably terrible practice.
 			# This acts as a fallback table.
-			self.dbcursor.execute('''DROP TABLE IF EXISTS '''+ self.defaulttable)
+			self.dbcursor.execute('''DROP TABLE IF EXISTS '''+ self.location_table)
+			self.dbcursor.execute('''CREATE TABLE '''+ self.location_table + ''' ''' + keystring)	
+			self.dbcursor.execute('''DROP TABLE IF EXISTS '''+ self.default_table)
+			self.dbcursor.execute('''CREATE TABLE '''+ self.default_table + ''' ''' + keystring)	
+
 			
-			
-			currenttable=self.defaulttable
+			currenttable=self.default_table
 			tablemap=dict()
 			
 			# Populate the table.
 			for row in collectionreader:
 				# Find the table for this row, or default to the default table.
 				if(tableindex > 0):
-					if ( row[tableindex] != '' ):
-						currenttable = row[tableindex].replace(' ','_')
+					if ( row[tableindex] == self.location_table ):
+						currenttable = self.location_table
 					else:
-						currenttable = self.defaulttable
+						currenttable = self.default_table
 				
 				# Remove the table defining element from the row.
-				del row[tableindex]
+				#del row[tableindex]
 				
 				# If the table doesn't exist create it.
-				if not currenttable in tablemap:
-					tablemap[currenttable] = 1
-					self.dbcursor.execute('''DROP TABLE IF EXISTS '''+ currenttable)	
-					self.dbcursor.execute('''CREATE TABLE '''+ currenttable + ''' ''' + keystring)	
+				#if not currenttable in tablemap:
+				#	tablemap[currenttable] = 1
+				#	self.dbcursor.execute('''DROP TABLE IF EXISTS '''+ currenttable)	
+				#	self.dbcursor.execute('''CREATE TABLE '''+ currenttable + ''' ''' + keystring)	
 				
 				try:
 					self.dbcursor.execute("INSERT INTO " + currenttable + " VALUES " +insertstring, row )
 				except:
-					print ("import failed"  )
-			
-			# No type should be the last table
-			self.dbcursor.execute('''CREATE TABLE IF NOT EXISTS '''+ self.defaulttable + ''' ''' + keystring)	
+					print ("import failed" )	
 					
 			self.db.commit()
 			
-		self.controller.present_tables()
+		self.controller.present_collections()
 
 		
 	
