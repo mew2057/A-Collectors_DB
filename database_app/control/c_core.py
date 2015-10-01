@@ -10,15 +10,22 @@ class Application():
 		self.view  = view.View(self)
 		self.model = model.Model(self)
 		
-	def importcsv(self, file):
-		self.model.importcsv(file)
+	def import_csv(self, file):
+		self.model.import_csv(file)
 		
-	def dbmissing(self, path, filename):
+	def db_missing(self, path, filename):
 		return self.view.newfile(path, filename, '.db')
 	
-	def opendb(self, file):
-		self.model.opendb(file)
-		
+	def open_db(self, file):
+		self.model.open_db(file)
+	
+	def open_table(self, table_name='sqlite_master'):
+		print("Opening "+ table_name)
+		self.view.show_entries(self.model.set_active_table(table_name))
+	
+	def present_collections(self):
+		self.view.show_collections( self.model.list_tables())
+		self.open_table()
 		
 	
 	

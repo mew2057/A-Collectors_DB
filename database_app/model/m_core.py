@@ -23,12 +23,26 @@ class Model():
 		# The default table name.
 		self.defaulttable='No_Type'
 		
+		# Show all option for the table
+		self.all_table='Show All'
+		
+		self.current_table='*'
+		
 		self.controller=control
 	
-	def binddb(self):
-		pass
+	# Queries the database for all tables.
+	def list_tables(self):
+		return self.dbcursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite%';").fetchall()
 	
-	def opendb(self, filename):
+	def set_active_table(self, table_name='all'):
+		if not self.dbcursor:
+			return
+			
+		self.current_table=table_name
+				
+		return self.dbcursor.execute("SELECT * from " + self.current_table).fetchall()
+	
+	def open_db(self, filename):
 		# TODO try
 		self.databasefile = filename
 		self.databasedir  = os.path.dirname(self.databasefile)
@@ -41,13 +55,11 @@ class Model():
 		#PRAGMA table_info(tablename
 		#print(self.dbcursor.execute("PRAGMA table_info(collection);").fetchall())
 		#print(self.dbcursor.execute("SELECT DISTINCT Type from collection;").fetchall())
-		print(self.dbcursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite%';").fetchall())
-		binddb()
+
+		# Present the collections.
+		self.controller.present_collections()
 		
-	def importcsv(self, filename):
-		print("opening "+ filename)
-		
-		print("Creating db ")
+	def import_csv(self, filename):
 		
 		# Make sure there's a database file before populating a database.
 		self.databasefile = self.controller.dbmissing( os.path.dirname(filename), os.path.basename(filename)[:-4] + '.db' )
@@ -146,6 +158,8 @@ class Model():
 			self.dbcursor.execute('''CREATE TABLE IF NOT EXISTS '''+ self.defaulttable + ''' ''' + keystring)	
 					
 			self.db.commit()
+			
+		self.controller.present_tables()
 
 		
 	
