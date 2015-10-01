@@ -4,6 +4,7 @@
 import csv
 import sqlite3 
 import os
+import sys
 
 # A class that easily mutable.
 class Collectible(object):
@@ -20,10 +21,13 @@ class Model():
 		self.dbcursor={}
 		
 		# The default table name.
-		self.defaulttable='collection'
+		self.defaulttable='No_Type'
 		
 		self.controller=control
-		
+	
+	def binddb(self):
+		pass
+	
 	def opendb(self, filename):
 		# TODO try
 		self.databasefile = filename
@@ -36,8 +40,9 @@ class Model():
 		self.dbcursor = self.db.cursor()
 		#PRAGMA table_info(tablename
 		#print(self.dbcursor.execute("PRAGMA table_info(collection);").fetchall())
-		print(self.dbcursor.execute("SELECT DISTINCT Type from collection;").fetchall())
-		
+		#print(self.dbcursor.execute("SELECT DISTINCT Type from collection;").fetchall())
+		print(self.dbcursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite%';").fetchall())
+		binddb()
 		
 	def importcsv(self, filename):
 		print("opening "+ filename)
@@ -66,7 +71,7 @@ class Model():
 		self.dbcursor = self.db.cursor()
 		
 		# Super Hacky
-		
+		# TODO clean this up when we have the functionality we want.
 		# Open the file in question
 		with open(filename, newline='') as csvfile:
 			
@@ -74,6 +79,8 @@ class Model():
 			collectionreader=csv.reader(csvfile)		
 			fieldnames=next(collectionreader)
 			keydatatypes=next(collectionreader)
+			
+			tableindex=-1
 			
 			# Generate the keys for the database.
 			keystring='''('''
@@ -86,6 +93,9 @@ class Model():
 					type="NUMBER" # this should be INTEGER
 				elif datatype == "BOOLEAN":
 					type="INTEGER"
+				elif datatype == "TABLE": # We shouldn't create a table for this.
+					tableindex=fieldnames.index(field)
+					continue 
 					
 				
 				# This is a hack!
@@ -99,19 +109,41 @@ class Model():
 			
 			keystring = keystring[:-1] + ''')'''
 			insertstring = insertstring[:-1] + ''')'''
+			
 
 			# This is probably terrible practice.
-			self.dbcursor.execute('''CREATE TABLE '''+ self.defaulttable + ''' ''' + keystring)	
+			# This acts as a fallback table.
+			self.dbcursor.execute('''DROP TABLE IF EXISTS '''+ self.defaulttable)
 			
-			#keys = ', '.join(collectionreader.fieldnames)
-
+			
+			currenttable=self.defaulttable
+			tablemap=dict()
+			
 			# Populate the table.
-			# TODO Tables based on Type?
 			for row in collectionreader:
+				# Find the table for this row, or default to the default table.
+				if(tableindex > 0):
+					if ( row[tableindex] != '' ):
+						currenttable = row[tableindex].replace(' ','_')
+					else:
+						currenttable = self.defaulttable
+				
+				# Remove the table defining element from the row.
+				del row[tableindex]
+				
+				# If the table doesn't exist create it.
+				if not currenttable in tablemap:
+					tablemap[currenttable] = 1
+					self.dbcursor.execute('''DROP TABLE IF EXISTS '''+ currenttable)	
+					self.dbcursor.execute('''CREATE TABLE '''+ currenttable + ''' ''' + keystring)	
+				
 				try:
-					self.dbcursor.execute("INSERT INTO " + self.defaulttable + " VALUES " +insertstring, row )
+					self.dbcursor.execute("INSERT INTO " + currenttable + " VALUES " +insertstring, row )
 				except:
-					print("import failed")
+					print ("import failed"  )
+			
+			# No type should be the last table
+			self.dbcursor.execute('''CREATE TABLE IF NOT EXISTS '''+ self.defaulttable + ''' ''' + keystring)	
 					
 			self.db.commit()
 
