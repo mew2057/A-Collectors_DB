@@ -10,6 +10,10 @@ class Application():
 		self.view  = view.View(self)
 		self.model = model.Model(self)
 		
+		self.id_loc=3
+		self.default_attributes="name,Subline,count,_id"
+		self.entry_attributes=["Name","Subline","Count"]
+		
 	def import_csv(self, file):
 		self.model.import_csv(file)
 		
@@ -21,12 +25,17 @@ class Application():
 	
 	def open_table(self, table_name):
 		print("Opening "+ table_name)
-		self.view.show_entries(self.model.set_active_table(table_name))
-		
+		if table_name != '':
+			self.view.show_entries(self.model.list_all_default_entries(table_name))
+	
+	def get_table_types(self, table_name):
+		return self.model.list_types(table_name)
+	
+	def open_type(self, table_name, type):
+		self.view.show_entries(self.model.list_default_entries(table_name, type))	
 	
 	def present_collections(self):
-		self.view.show_collections( self.model.list_collection())
-		self.open_table()
+		self.view.show_collections(self.model.list_collection())
 		
 	
 	

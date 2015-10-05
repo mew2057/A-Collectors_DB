@@ -3,7 +3,10 @@
 
 import tkinter as tk
 from tkinter import filedialog 
-from tkinter import *
+from tkinter import * 
+from tkinter import ttk
+
+
 #
 # TODO design a proper MVC pattern for this, it may be to learn python, but I can do it right.
 #
@@ -49,30 +52,39 @@ class View():
 		
 		# Actual content.
 		self.category_frame=tk.Frame(self.controller.root)
-		self.category_list=tk.Listbox(self.category_frame)
-		self.entry_list=tk.Listbox(self.category_frame)
-
+		self.category_tree=ttk.Treeview(self.category_frame,show="tree")
 		
-		self.category_frame.pack()
+		self.entry_tree=ttk.Treeview(self.category_frame,show="headings")
+
+		self.category_frame.grid(row=0, column=0)
+		
+		# GUI options, may need to refine.
+		self.active_collection=""
+		self.active_type=""
+		self.active_entry=""
 		
 	def show_collections(self, collections):
 		# First clear the previous collection list.		
-		if self.category_list:
-			self.category_list.destroy()
+		if self.category_tree:
+			self.category_tree.destroy()
 		
 		# Remake the listbox 
-		self.category_list=tk.Listbox(self.category_frame)
+		self.category_tree=ttk.Treeview(self.category_frame,show="tree")
 		
 		for collection in collections:
-				
-			self.category_list.insert(END, collection[0])
+			collection_name=collection[0]
+			
+			id=self.category_tree.insert('', END, text=collection_name)
+			
+			# Add the existing types.
+			types = self.controller.get_table_types(collection_name)
+			for type in types:
+				self.category_tree.insert(id, END, text=type[0])
 		
 		# Bind the opening command for categories to actually enter the 
-		self.category_list.bind("<Double-Button-1>", self.open_category)
-		self.category_list.bind("<Return>", self.open_category)
-
-		self.category_list.pack()
-		
+		self.category_tree.bind("<Double-Button-1>", self.open_category)
+		self.category_tree.bind("<Return>", self.open_category)
+		self.category_tree.grid(row=0, column=0)
 	
 	# I hope this is pass by reference...
 	def show_entries(self, entries):
@@ -80,32 +92,43 @@ class View():
 			return
 			
 		# First clear the previous entry list.		
-		if self.entry_list:
-			self.entry_list.destroy()
+		if self.entry_tree:
+			self.entry_tree.destroy()
 		
 		# Remake the listbox 
-		self.entry_list=tk.Listbox(self.category_frame)
+		self.entry_tree=ttk.Treeview(self.category_frame, show="headings", columns=self.controller.entry_attributes)
+
+		for col in self.controller.entry_attributes:
+			self.entry_tree.heading(col, text=col)
 		
 		for entry in entries:
-			# Make this better!
-			self.entry_list.insert(END, entry[4])
+			self.entry_tree.insert('',END, entry[self.controller.id_loc], values=entry)	
+
 		
-		self.entry_list.bind("<Double-Button-1>", self.open_entry)
-		self.entry_list.bind("<Return>", self.open_entry)
+		self.entry_tree.bind("<Double-Button-1>", self.open_entry)
+		self.entry_tree.bind("<Return>", self.open_entry)
 			
-		self.entry_list.pack()
+		self.entry_tree.grid(row=0, column=1, sticky="WENS")
 
 	def open_category(self, event):
-		widget    = event.widget
-		selection = widget.curselection()
-		table     = widget.get(selection[0])
-		self.controller.open_table(table)	
+		item     = self.category_tree.identify('item',event.x,event.y)
+		parent   = self.category_tree.parent(item)
+		
+		if parent:
+			self.active_type = self.category_tree.item(item, "text")
+			self.active_collection = self.category_tree.item(parent, "text")
+			
+			self.controller.open_type(self.active_collection, self.active_type)
+		else:
+			self.active_type = ""
+			self.active_collection = self.category_tree.item(item, "text")			
+			self.controller.open_table(self.active_collection)
 
 	def open_entry(self, event):
-		widget    = event.widget
-		selection = widget.curselection()
-		entry     = widget.get(selection[0])
-		print(entry)
+		item              = self.entry_tree.identify('item',event.x,event.y)
+		self.active_entry = self.entry_tree.item(item, "text")
+
+		print(item)
 	
 	######################################
 	# Create File

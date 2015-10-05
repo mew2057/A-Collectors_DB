@@ -31,10 +31,22 @@ class Model():
 	
 	# Queries the database for all tables.
 	def list_collection(self):
-		collections  = self.dbcursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite%';").fetchall()
-		collections += self.dbcursor.execute("SELECT DISTINCT "+self.collection_classifier+ " from " + self.default_table).fetchall()
-		return collections
+		return self.dbcursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite%';").fetchall()
+
+				
+	def list_types(self, table_name):
+		return self.dbcursor.execute("SELECT DISTINCT " + self.collection_classifier + " from " + table_name).fetchall()
 	
+	def list_all_default_entries(self, table_name):
+		return self.dbcursor.execute("SELECT " + self.controller.default_attributes + " from " + table_name)	
+		
+	def list_entries(self, table_name, type):
+		return self.dbcursor.execute("SELECT * from " + table_name + " WHERE type='" + type + "'" )		
+	
+	def list_default_entries(self, table_name, type):
+		return self.dbcursor.execute("SELECT " + self.controller.default_attributes + " from " + table_name + " WHERE type='" + type + "'" )		
+
+		
 	def set_active_table(self, table_name):
 		if not self.dbcursor:
 			return
