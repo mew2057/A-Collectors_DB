@@ -20,9 +20,28 @@ class Model():
 		self.db={}
 		self.dbcursor={}
 		
-		# The default table name.
-		self.default_table='Collection'
-		self.location_table="Location"
+		# The default table name. This is really only useful for CSV now
+		# TODO make a more robust solution.
+		self.toy_table  = 'Toy'
+		self.toy_keys   = '''( _id INTEGER PRIMARY KEY AUTOINCREMENT, FOREIGN KEY(Location) REFERENCES Location(_id), FOREIGN KEY(Type) REFERENCES Series(_id),FOREIGN KEY(Class) REFERENCES Class(_id), Accessories:TEXT, Defects:TEXT, Description:TEXT, Count:INTEGER, MSRP:INTEGER, Value:INTEGER, GPS:INTEGER, Childhood:INTEGER, Replace:INTEGER)'''
+		self.toy_insert = '''( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )'''
+
+		self.class_table  = 'Class'
+		self.class_keys   = '''( _id INTEGER PRIMARY KEY AUTOINCREMENT, FOREIGN KEY(Class) REFERENCES Class(_id), Name:TEXT)'''
+		self.class_insert = '''( ?, ?, ? )'''
+
+		
+		self.series_table = 'Series'
+		self.series_keys  = '''( _id INTEGER PRIMARY KEY AUTOINCREMENT, FOREIGN KEY(Series) REFERENCES Series(_id), Name:TEXT, ShortName:TEXT)'''
+		self.class_insert = '''( ?, ?, ?, ? )'''
+
+
+		self.location_table = "Location"
+		self.location_keys  = '''( _id INTEGER PRIMARY KEY AUTOINCREMENT, FOREIGN KEY(Location) REFERENCES Location(_id), Name:TEXT, Description:TEXT, Images:TEXT, MSRP:INTEGER)'''
+		self.class_insert   = '''( ?, ?, ?, ?, ?, ? )'''
+
+		
+		# This is a hack.
 		self.collection_classifier='Type'
 		
 		self.current_table='*'
@@ -64,10 +83,7 @@ class Model():
 			self.db.close
 			
 		self.db       = sqlite3.connect(self.databasefile)
-		self.dbcursor = self.db.cursor()
-		#PRAGMA table_info(tablename
-		#print(self.dbcursor.execute("PRAGMA table_info(collection);").fetchall())
-		#print(self.dbcursor.execute("SELECT DISTINCT Type from collection;").fetchall())
+		self.dbcursor = self.db.cursor()	
 
 		# Present the collections.
 		self.controller.present_collections()
@@ -95,56 +111,26 @@ class Model():
 		self.db       = sqlite3.connect(self.databasefile)
 		self.dbcursor = self.db.cursor()
 		
-		# Super Hacky
+		# Super Hacky, Really just for my csv
 		# TODO clean this up when we have the functionality we want.
 		# Open the file in question
 		with open(filename, newline='') as csvfile:
 			
-			headers = Collectible()
-			collectionreader=csv.reader(csvfile)		
-			fieldnames=next(collectionreader)
-			keydatatypes=next(collectionreader)
+			collectionreader=csv.DictReader(csvfile)			
 			
-			tableindex=-1
+			# Nuke the old tables.
+			self.dbcursor.execute('''DROP TABLE IF EXISTS '''+ self.toy_table)
+			self.dbcursor.execute('''CREATE TABLE '''+ self.toy_table + ''' ''' + self.toy_keys)	
 			
-			# Generate the keys for the database.
-			keystring='''('''
-			insertstring='''('''
-			for field,datatype in zip(fieldnames, keydatatypes):
-				type=datatype
-				
-				# TODO store this better
-				if datatype == "MONEY":
-					type="NUMBER" # this should be INTEGER
-				elif datatype == "BOOLEAN":
-					type="INTEGER"
-				elif datatype == "TABLE": 
-					self.collection_classifier = field
-					tableindex=fieldnames.index(field)
-					type="TEXT"
-					
-				
-				# This is a hack!
-				if field == '_id':
-					keystring += field + " " + type + " PRIMARY KEY AUTOINCREMENT,"
-				else:
-				#	self.dbcursor.execute()
-					keystring += field + " " + type + ","
-					
-				insertstring+="?,"
+			self.dbcursor.execute('''DROP TABLE IF EXISTS '''+ self.class_table)
+			self.dbcursor.execute('''CREATE TABLE '''+ self.class_table + ''' ''' + self.class_keys)	
 			
-			keystring = keystring[:-1] + ''')'''
-			insertstring = insertstring[:-1] + ''')'''
+			self.dbcursor.execute('''DROP TABLE IF EXISTS '''+ self.series_table)
+			self.dbcursor.execute('''CREATE TABLE '''+ self.series_table + ''' ''' + self.series_keys)	
 			
-			# This is probably terrible practice.
-			# This acts as a fallback table.
-			self.dbcursor.execute('''DROP TABLE IF EXISTS '''+ self.location_table)
-			self.dbcursor.execute('''CREATE TABLE '''+ self.location_table + ''' ''' + keystring)	
-			self.dbcursor.execute('''DROP TABLE IF EXISTS '''+ self.default_table)
-			self.dbcursor.execute('''CREATE TABLE '''+ self.default_table + ''' ''' + keystring)	
-
+			self.dbcursor.execute('''DROP TABLE IF EXISTS '''+ self.location_table)			
+			self.dbcursor.execute('''CREATE TABLE '''+ self.location_table + ''' ''' + self.location_keys)	
 			
-			currenttable=self.default_table
 			tablemap=dict()
 			
 			# Populate the table.
