@@ -43,8 +43,6 @@ class Model():
 		self.location_keys  = '''( _id INTEGER PRIMARY KEY AUTOINCREMENT, Name TEXT, Description TEXT, Images TEXT, MSRP INTEGER, Location_id INTEGER, FOREIGN KEY(Location_id) REFERENCES Location(_id))'''
 		self.location_create   = '''(?, ?, ?, ?, ?, ? )'''
 		self.location_create_key = '''( _id, Name, Description, Images, MSRP, Location_id )'''
-
-
 		
 		# This is a hack.
 		self.collection_classifier='Type'
@@ -56,10 +54,9 @@ class Model():
 	# Queries the database for all tables.
 	def list_collection(self):
 		return self.dbcursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite%';").fetchall()
-
 				
 	def list_types(self, table_name):
-		return self.dbcursor.execute("SELECT DISTINCT " + self.collection_classifier + " from " + table_name).fetchall()
+		return self.dbcursor.execute("SELECT Name from " + table_name).fetchall()
 	
 	def list_all_default_entries(self, table_name):
 		return self.dbcursor.execute("SELECT " + self.controller.default_attributes + " from " + table_name)	
@@ -93,14 +90,6 @@ class Model():
 		# Present the collections.
 		self.controller.present_collections()
 
-	def create_class():
-		pass
-	def import_series():
-		pass
-	def import_location():
-		pass
-	
-	
 	
 	def import_csv(self, filename):
 		

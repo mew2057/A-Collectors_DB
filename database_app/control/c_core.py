@@ -11,8 +11,8 @@ class Application():
 		self.model = model.Model(self)
 		
 		self.id_loc=3
-		self.default_attributes="name,Subline,count,_id"
-		self.entry_attributes=["Name","Subline","Count"]
+		self.default_attributes="Name,Series_id, Count,_id"
+		self.entry_attributes=["Name","Series_id","Count"]
 		
 	def import_csv(self, file):
 		self.model.import_csv(file)
