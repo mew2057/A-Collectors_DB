@@ -23,21 +23,21 @@ class Model():
 		# The default table name. This is really only useful for CSV now
 		# TODO make a more robust solution.
 		self.toy_table  = 'Toy'
-		self.toy_keys   = '''( _id INTEGER PRIMARY KEY AUTOINCREMENT, FOREIGN KEY(Location) REFERENCES Location(_id), FOREIGN KEY(Type) REFERENCES Series(_id),FOREIGN KEY(Class) REFERENCES Class(_id), Accessories:TEXT, Defects:TEXT, Description:TEXT, Count:INTEGER, MSRP:INTEGER, Value:INTEGER, GPS:INTEGER, Childhood:INTEGER, Replace:INTEGER)'''
+		self.toy_keys   = '''( _id INTEGER PRIMARY KEY AUTOINCREMENT, Accessories TEXT, Defects TEXT, Description TEXT, Count INTEGER, MSRP INTEGER, Value INTEGER, GPS INTEGER, Childhood INTEGER, Replace INTEGER,CONSTRAINT Location_id FOREIGN KEY(_id) REFERENCES Location(_id),CONSTRAINT Series_id FOREIGN KEY(_id) REFERENCES Series(_id),CONSTRAINT Class_id FOREIGN KEY(_id) REFERENCES Class(_id))'''
 		self.toy_insert = '''( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )'''
 
 		self.class_table  = 'Class'
-		self.class_keys   = '''( _id INTEGER PRIMARY KEY AUTOINCREMENT, FOREIGN KEY(Class) REFERENCES Class(_id), Name:TEXT)'''
+		self.class_keys   = '''( _id INTEGER PRIMARY KEY AUTOINCREMENT, Name TEXT, CONSTRAINT Class_id FOREIGN KEY(_id) REFERENCES Class(_id) )'''
 		self.class_insert = '''( ?, ?, ? )'''
 
 		
 		self.series_table = 'Series'
-		self.series_keys  = '''( _id INTEGER PRIMARY KEY AUTOINCREMENT, FOREIGN KEY(Series) REFERENCES Series(_id), Name:TEXT, ShortName:TEXT)'''
+		self.series_keys  = '''( _id INTEGER PRIMARY KEY AUTOINCREMENT, Name TEXT, ShortName TEXT, CONSTRAINT Series_id FOREIGN KEY(_id) REFERENCES Series(_id) )'''
 		self.class_insert = '''( ?, ?, ?, ? )'''
 
 
 		self.location_table = "Location"
-		self.location_keys  = '''( _id INTEGER PRIMARY KEY AUTOINCREMENT, FOREIGN KEY(Location) REFERENCES Location(_id), Name:TEXT, Description:TEXT, Images:TEXT, MSRP:INTEGER)'''
+		self.location_keys  = '''( _id INTEGER PRIMARY KEY AUTOINCREMENT, Name TEXT, Description TEXT, Images TEXT, MSRP INTEGER, CONSTRAINT Location_id FOREIGN KEY(_id) REFERENCES Location(_id))'''
 		self.class_insert   = '''( ?, ?, ?, ?, ?, ? )'''
 
 		
@@ -118,10 +118,9 @@ class Model():
 			
 			collectionreader=csv.DictReader(csvfile)			
 			
-			# Nuke the old tables.
-			self.dbcursor.execute('''DROP TABLE IF EXISTS '''+ self.toy_table)
-			self.dbcursor.execute('''CREATE TABLE '''+ self.toy_table + ''' ''' + self.toy_keys)	
+			# Nuke the old tables.	
 			
+			print('''CREATE TABLE '''+ self.class_table + ''' ''' + self.class_keys)
 			self.dbcursor.execute('''DROP TABLE IF EXISTS '''+ self.class_table)
 			self.dbcursor.execute('''CREATE TABLE '''+ self.class_table + ''' ''' + self.class_keys)	
 			
@@ -131,16 +130,19 @@ class Model():
 			self.dbcursor.execute('''DROP TABLE IF EXISTS '''+ self.location_table)			
 			self.dbcursor.execute('''CREATE TABLE '''+ self.location_table + ''' ''' + self.location_keys)	
 			
+			self.dbcursor.execute('''DROP TABLE IF EXISTS '''+ self.toy_table)
+			self.dbcursor.execute('''CREATE TABLE '''+ self.toy_table + ''' ''' + self.toy_keys)
+			
 			tablemap=dict()
 			
 			# Populate the table.
 			for row in collectionreader:
 				# Find the table for this row, or default to the default table.
-				if(tableindex > 0):
-					if ( row[tableindex] == self.location_table ):
-						currenttable = self.location_table
-					else:
-						currenttable = self.default_table
+				#if(tableindex > 0):
+				#	if ( row[tableindex] == self.location_table ):
+				#		currenttable = self.location_table
+				#	else:
+				#		currenttable = self.default_table
 				
 				# Remove the table defining element from the row.
 				#del row[tableindex]
@@ -151,11 +153,11 @@ class Model():
 				#	self.dbcursor.execute('''DROP TABLE IF EXISTS '''+ currenttable)	
 				#	self.dbcursor.execute('''CREATE TABLE '''+ currenttable + ''' ''' + keystring)	
 				
-				try:
-					self.dbcursor.execute("INSERT INTO " + currenttable + " VALUES " +insertstring, row )
-				except:
-					print ("import failed" )	
-					
+				#try:
+			    #   self.dbcursor.execute("INSERT INTO " + currenttable + " VALUES " + insertstring, row )
+				#except:
+				#	print ("import failed" )	
+				pass	
 			self.db.commit()
 			
 		self.controller.present_collections()
