@@ -23,22 +23,27 @@ class Model():
 		# The default table name. This is really only useful for CSV now
 		# TODO make a more robust solution.
 		self.toy_table  = 'Toy'
-		self.toy_keys   = '''( _id INTEGER PRIMARY KEY AUTOINCREMENT, Accessories TEXT, Defects TEXT, Description TEXT, Count INTEGER, MSRP INTEGER, Value INTEGER, GPS INTEGER, Childhood INTEGER, Replace INTEGER,CONSTRAINT Location_id FOREIGN KEY(_id) REFERENCES Location(_id),CONSTRAINT Series_id FOREIGN KEY(_id) REFERENCES Series(_id),CONSTRAINT Class_id FOREIGN KEY(_id) REFERENCES Class(_id))'''
-		self.toy_insert = '''( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )'''
+		self.toy_keys   = '''( _id INTEGER PRIMARY KEY AUTOINCREMENT, Name TEXT, Accessories TEXT, Defects TEXT, Description TEXT, Count INTEGER, MSRP INTEGER, Value INTEGER, GPS INTEGER, Childhood INTEGER, Replace INTEGER,Class_id INTEGER, Series_id INTEGER, Location_id INTEGER, FOREIGN KEY(Location_id) REFERENCES Location(_id), FOREIGN KEY(Series_id) REFERENCES Series(_id), FOREIGN KEY(Class_id) REFERENCES Class(_id) )'''
+		self.toy_new = '''( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )'''
 
 		self.class_table  = 'Class'
-		self.class_keys   = '''( _id INTEGER PRIMARY KEY AUTOINCREMENT, Name TEXT, CONSTRAINT Class_id FOREIGN KEY(_id) REFERENCES Class(_id) )'''
-		self.class_insert = '''( ?, ?, ? )'''
+		self.class_keys   = '''( _id INTEGER PRIMARY KEY AUTOINCREMENT, Name TEXT )'''
+		self.class_create = '''( ? )'''
+		self.class_create_key = '''( Name )'''
 
 		
 		self.series_table = 'Series'
-		self.series_keys  = '''( _id INTEGER PRIMARY KEY AUTOINCREMENT, Name TEXT, ShortName TEXT, CONSTRAINT Series_id FOREIGN KEY(_id) REFERENCES Series(_id) )'''
-		self.class_insert = '''( ?, ?, ?, ? )'''
+		self.series_keys  = '''( _id INTEGER PRIMARY KEY AUTOINCREMENT, Name TEXT, ShortName TEXT, Series_id INTEGER, FOREIGN KEY(Series_id) REFERENCES Series(_id))'''
+		self.series_create = '''( ?, ?, ?, ? )'''		
+		self.series_insert = '''( ?, ?, ? )'''		
+		self.series_create_key = '''( Name, ShortName, Series_id )'''
 
 
 		self.location_table = "Location"
-		self.location_keys  = '''( _id INTEGER PRIMARY KEY AUTOINCREMENT, Name TEXT, Description TEXT, Images TEXT, MSRP INTEGER, CONSTRAINT Location_id FOREIGN KEY(_id) REFERENCES Location(_id))'''
-		self.class_insert   = '''( ?, ?, ?, ?, ?, ? )'''
+		self.location_keys  = '''( _id INTEGER PRIMARY KEY AUTOINCREMENT, Name TEXT, Description TEXT, Images TEXT, MSRP INTEGER, Location_id INTEGER, FOREIGN KEY(Location_id) REFERENCES Location(_id))'''
+		self.location_create   = '''(?, ?, ?, ?, ?, ? )'''
+		self.location_create_key = '''( _id, Name, Description, Images, MSRP, Location_id )'''
+
 
 		
 		# This is a hack.
@@ -87,7 +92,16 @@ class Model():
 
 		# Present the collections.
 		self.controller.present_collections()
-		
+
+	def create_class():
+		pass
+	def import_series():
+		pass
+	def import_location():
+		pass
+	
+	
+	
 	def import_csv(self, filename):
 		
 		# Make sure there's a database file before populating a database.
@@ -119,8 +133,6 @@ class Model():
 			collectionreader=csv.DictReader(csvfile)			
 			
 			# Nuke the old tables.	
-			
-			print('''CREATE TABLE '''+ self.class_table + ''' ''' + self.class_keys)
 			self.dbcursor.execute('''DROP TABLE IF EXISTS '''+ self.class_table)
 			self.dbcursor.execute('''CREATE TABLE '''+ self.class_table + ''' ''' + self.class_keys)	
 			
@@ -133,31 +145,62 @@ class Model():
 			self.dbcursor.execute('''DROP TABLE IF EXISTS '''+ self.toy_table)
 			self.dbcursor.execute('''CREATE TABLE '''+ self.toy_table + ''' ''' + self.toy_keys)
 			
-			tablemap=dict()
+			classmap=dict()
+			locationmap=dict()
+			seriesmap=dict()
 			
+			# This is hacky, fast and lose
 			# Populate the table.
 			for row in collectionreader:
-				# Find the table for this row, or default to the default table.
-				#if(tableindex > 0):
-				#	if ( row[tableindex] == self.location_table ):
-				#		currenttable = self.location_table
-				#	else:
-				#		currenttable = self.default_table
+			
+				# Location id.
+				locid = row["LocID"] if row["LocID"] != '' else -1
+				classid = -1
+				seriesid= -1
 				
-				# Remove the table defining element from the row.
-				#del row[tableindex]
+				classification =  row["Classification"] if row["Classification"] != '' else 'N/A'
 				
-				# If the table doesn't exist create it.
-				#if not currenttable in tablemap:
-				#	tablemap[currenttable] = 1
-				#	self.dbcursor.execute('''DROP TABLE IF EXISTS '''+ currenttable)	
-				#	self.dbcursor.execute('''CREATE TABLE '''+ currenttable + ''' ''' + keystring)	
 				
-				#try:
-			    #   self.dbcursor.execute("INSERT INTO " + currenttable + " VALUES " + insertstring, row )
-				#except:
-				#	print ("import failed" )	
-				pass	
+				
+				# If it's a location.
+				if row["Type"] == '''Location''':
+					self.dbcursor.execute("INSERT INTO " + self.location_table + self.location_create_key + " VALUES " + self.location_create, 
+					(row["_id"], row["Name"], row["Description"], "", 0, locid))
+					continue
+				
+				# Check if Class Exists.
+				if not classification in classmap :
+					try:
+						self.dbcursor.execute("INSERT INTO " + self.class_table + self.class_create_key + " VALUES " + self.class_create, (classification, ) )
+						classmap[ classification ] = self.dbcursor.lastrowid
+						classid = self.dbcursor.lastrowid
+					except:
+						print ("Class create failed!" )	
+				else:
+					classid = classmap[ classification ] 
+				
+				# Check if Series Exists.
+				if not row["Type"] in  seriesmap:
+					try:						
+						self.dbcursor.execute("INSERT INTO " + self.series_table  + self.series_create_key  + " VALUES " + self.series_insert , (row["Type"], row["TypeCode"], -1) )
+						seriesmap[ row["Type"] ] = self.dbcursor.lastrowid				
+					except:
+						print ("Type creation failed!" )
+						
+				if not row["Subline"] in  seriesmap:
+					try:						
+						self.dbcursor.execute("INSERT INTO " + self.series_table  + self.series_create_key  + " VALUES " + self.series_insert , (row["Subline"], row["SublineCode"], seriesmap[ row["Type"] ]) )
+						seriesmap[ row["Subline"] ] = self.dbcursor.lastrowid
+						seriesid = self.dbcursor.lastrowid						
+					except:
+						print ("Type creation failed!" )
+				else:
+					seriesid = seriesmap[ row["Subline"] ]
+									
+				try:
+					self.dbcursor.execute("INSERT INTO " + self.toy_table + " VALUES " + self.toy_new, (row["_id"], row["Name"], row["Acessories"], row["Defects"], row["Description"], row["Count"], row["MSRP"],row["Value"],row["GPS"],row["Childhood"],row["Replace"],classid, seriesid, locid) )
+				except:
+					print("Toy import failed!")
 			self.db.commit()
 			
 		self.controller.present_collections()
