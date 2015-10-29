@@ -9,10 +9,11 @@ class Application():
 		self.root  = root
 		self.view  = view.View(self)
 		self.model = model.Model(self)
-		
+		#select Toy.Name, Series.Name,Toy.Count  from Toy  LEFT OUTER JOIN Series where Toy.Series_id=Series._id And Series.Series_id=1 
+
 		self.id_loc=3
-		self.default_attributes="Name,Series_id, Count,_id"
-		self.entry_attributes=["Name","Series_id","Count"]
+		self.default_attributes="Toy.Name,Series.Name, Toy.Count,Toy._id"
+		self.entry_attributes=["Name","Series","Count"]
 		
 	def import_csv(self, file):
 		self.model.import_csv(file)

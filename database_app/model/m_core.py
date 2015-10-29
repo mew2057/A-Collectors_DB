@@ -20,6 +20,12 @@ class Model():
 		self.db={}
 		self.dbcursor={}
 		
+		self.table_map=	{ \
+			# Category (1 = yes), Display Mode (-1: no drop, 0: dropdown (recursive), 1: dropdown use a group ) 
+			'Toy' : ( 1, 1 ), 'Class': ( 0, -1 ), 'Series': ( 0, 0 ),	'Location': ( 0, -1 ) }
+		
+		
+		
 		# The default table name. This is really only useful for CSV now
 		# TODO make a more robust solution.
 		self.toy_table  = 'Toy'
@@ -33,16 +39,20 @@ class Model():
 
 		
 		self.series_table = 'Series'
-		self.series_keys  = '''( _id INTEGER PRIMARY KEY AUTOINCREMENT, Name TEXT, ShortName TEXT, Series_id INTEGER, FOREIGN KEY(Series_id) REFERENCES Series(_id))'''
+		self.series_keys  = '''( _id INTEGER PRIMARY KEY AUTOINCREMENT, Series_Name TEXT, ShortName TEXT, Series_id INTEGER, FOREIGN KEY(Series_id) REFERENCES Series(_id))'''
 		self.series_create = '''( ?, ?, ?, ? )'''		
 		self.series_insert = '''( ?, ?, ? )'''		
 		self.series_create_key = '''( Name, ShortName, Series_id )'''
 
 
 		self.location_table = "Location"
-		self.location_keys  = '''( _id INTEGER PRIMARY KEY AUTOINCREMENT, Name TEXT, Description TEXT, Images TEXT, MSRP INTEGER, Location_id INTEGER, FOREIGN KEY(Location_id) REFERENCES Location(_id))'''
+		self.location_keys  = '''( _id INTEGER PRIMARY KEY AUTOINCREMENT, Location_Name TEXT, Description TEXT, Images TEXT, MSRP INTEGER, Location_id INTEGER, FOREIGN KEY(Location_id) REFERENCES Location(_id))'''
 		self.location_create   = '''(?, ?, ?, ?, ?, ? )'''
 		self.location_create_key = '''( _id, Name, Description, Images, MSRP, Location_id )'''
+		
+		# TODO make this a thing
+		self.meta_table   = "Meta"
+		self.meta_keys    = '''( _id INTEGER PRIMARY KEY, TableName TEXT, CategoryMode INTEGER)'''
 		
 		# This is a hack.
 		self.collection_classifier='Type'
@@ -56,7 +66,15 @@ class Model():
 		return self.dbcursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite%';").fetchall()
 				
 	def list_types(self, table_name):
-		return self.dbcursor.execute("SELECT Name from " + table_name).fetchall()
+		listtype = self.table_map[table_name][1]
+		type= self.table_map[table_name][0]
+		
+		if listtype == -1:
+			return [], type
+		elif listtype == 0:
+			return [], type
+		else:
+			return self.dbcursor.execute("SELECT Name from " + table_name).fetchall(), type
 	
 	def list_all_default_entries(self, table_name):
 		return self.dbcursor.execute("SELECT " + self.controller.default_attributes + " from " + table_name)	
