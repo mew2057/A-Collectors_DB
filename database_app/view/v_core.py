@@ -68,7 +68,8 @@ class View():
 		self.entry_frame= ttk.Labelframe(self.controller.root,text="Entries")
 		
 		self.entry_tree=ttk.Treeview(self.entry_frame,show="headings")
-
+		self.entry_frame.grid(row=0,column=1)
+		
 		self.category_notebook.grid(row=0, column=0)
 		
 		# GUI options, may need to refine.
@@ -88,27 +89,28 @@ class View():
 			collection_name=collection[0]
 			
 			# Add the existing types.
-			types,category = self.controller.get_table_types(collection_name)
-			
+			types, category = self.controller.get_table_types(collection_name)
 			
 			if category == 1:
 				id=self.category_collections_tree.insert('', END, text=collection_name)
 			
 				for type in types:
+					print (type)
 					self.category_collections_tree.insert(id, END, text=type[0])
 			else:
 				id=self.category_groups_tree.insert('', END, text=collection_name)
 			
 				for type in types:
+					print (type)
 					self.category_groups_tree.insert(id, END, text=type[0])
 		
 		# Bind the opening command for categories to actually enter the 
-		self.category_collections_tree.bind("<Double-Button-1>", self.open_category)
-		self.category_collections_tree.bind("<Return>", self.open_category)
+		self.category_collections_tree.bind("<Double-Button-1>", self.open_collection)
+		self.category_collections_tree.bind("<Return>", self.open_collection)
 		self.category_collections_tree.grid(row=0, column=0)
 		
-		self.category_groups_tree.bind("<Double-Button-1>", self.open_category)
-		self.category_groups_tree.bind("<Return>", self.open_category)
+		self.category_groups_tree.bind("<Double-Button-1>", self.open_group)
+		self.category_groups_tree.bind("<Return>", self.open_group)
 		self.category_groups_tree.grid(row=0, column=0)
 	
 	# I hope this is pass by reference...
@@ -123,10 +125,13 @@ class View():
 		# Remake the listbox 
 		self.entry_tree=ttk.Treeview(self.entry_frame, show="headings", columns=self.controller.entry_attributes)
 
+		# add the entry headings
 		for col in self.controller.entry_attributes:
 			self.entry_tree.heading(col, text=col)
 		
+		# add the entry to the list.
 		for entry in entries:
+			# Parent, where, identifier, values.
 			self.entry_tree.insert('',END, entry[self.controller.id_loc], values=entry)	
 
 		
@@ -135,7 +140,7 @@ class View():
 			
 		self.entry_tree.grid(row=0, column=1, sticky="WENS")
 
-	def open_category(self, event):
+	def open_group(self, event):
 		item     = self.category_collections_tree.identify('item',event.x,event.y)
 		parent   = self.category_collections_tree.parent(item)
 		
@@ -149,6 +154,22 @@ class View():
 			#self.active_collection = self.category_collections_tree.item(item, "text")			
 			#self.controller.open_table(self.active_collection)
 			pass
+	
+	def open_collection(self, event):
+		item     = self.category_collections_tree.identify('item',event.x,event.y)
+		parent   = self.category_collections_tree.parent(item)
+		
+		if parent:
+			self.active_type = self.category_collections_tree.item(item, "text")
+			self.active_collection = self.category_collections_tree.item(parent, "text")
+			
+			#self.controller.open_type(self.active_collection, self.active_type)
+		else:
+			self.active_type = ""
+			self.active_collection = self.category_collections_tree.item(item, "text")			
+			self.controller.open_table(self.active_collection)
+			
+
 	def open_entry(self, event):
 		item              = self.entry_tree.identify('item',event.x,event.y)
 		self.active_entry = self.entry_tree.item(item, "text")

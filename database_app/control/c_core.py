@@ -10,9 +10,14 @@ class Application():
 		self.view  = view.View(self)
 		self.model = model.Model(self)
 		#select Toy.Name, Series.Name,Toy.Count  from Toy  LEFT OUTER JOIN Series where Toy.Series_id=Series._id And Series.Series_id=1 
+		# Gets only the root types of the members of the collection.
+		# Series parameterization, assumes it has the Series_id column
+		# WITH Root (_id) AS 
+		#	(SELECT DISTINCT Series.Series_id FROM TABLENAME LEFT JOIN SERIES ON TABLENAME.Series_id=Series._id ) 
+		# SELECT Series._id,Series.Name FROM Root LEFT Join Series ON Root._id=Series._id
 
 		self.id_loc=3
-		self.default_attributes="Toy.Name,Series.Name, Toy.Count,Toy._id"
+		self.default_attributes="Toy.Name,Series_id, Toy.Count,Toy._id"
 		self.entry_attributes=["Name","Series","Count"]
 		
 	def import_csv(self, file):

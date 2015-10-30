@@ -64,19 +64,27 @@ class Model():
 	# Queries the database for all tables.
 	def list_collection(self):
 		return self.dbcursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite%';").fetchall()
-				
+	
+	# TODO make this more robust.
 	def list_types(self, table_name):
 		listtype = self.table_map[table_name][1]
 		type= self.table_map[table_name][0]
 		
+		#-1: no drop, 0: dropdown, 1: dropdown use another group 
 		if listtype == -1:
 			return [], type
 		elif listtype == 0:
-			return [], type
+			# TODO specialization
+			return self.dbcursor.execute("SELECT Name,_id from " + table_name + " where " + table_name+"_id=-1").fetchall(), type
 		else:
-			return self.dbcursor.execute("SELECT Name from " + table_name).fetchall(), type
+			# FIXME
+			# Currently Series is the only one!
+			## TODO parameterize this string!			
+			return self.dbcursor.execute('''WITH Root (_id) AS (SELECT DISTINCT Series.Series_id FROM ''' + table_name + ''' LEFT JOIN SERIES ON ''' + table_name\
+			+ '''.Series_id=Series._id ) SELECT Series.Name,Series._id FROM Root LEFT Join Series ON Root._id=Series._id''').fetchall(), type
 	
 	def list_all_default_entries(self, table_name):
+		print ("SELECT " + self.controller.default_attributes + " from " + table_name)
 		return self.dbcursor.execute("SELECT " + self.controller.default_attributes + " from " + table_name)	
 		
 	def list_entries(self, table_name, type):
