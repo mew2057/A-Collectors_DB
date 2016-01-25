@@ -1,0 +1,63 @@
+#:kivy 1.9.1
+
+<DatabaseRoot>:
+     AnchorLayout:
+          
+     RootRibbon:
+          pos: 0, root.top - self.height/2
+     
+    
+
+<RootRibbon>:
+     Button:
+          id: file_btn
+          text: 'File'
+          on_release: file_dropdown.open(self)
+          on_press: file_dropdown.open(self)
+          size_hint_y: None
+          height: '48dp'
+          AnchorLayout:
+               anchor_x:'left'
+               anchor_y:'top'
+          
+          
+     DropDown:
+          id: file_dropdown
+          on_parent: self.dismiss()
+          on_resize: self.dismiss()
+          on_select: file_btn.text = '{}'.format(args[1])
+
+          Button:
+               text: 'New'
+               size_hint_y: None
+               height: '24dp'
+               on_release: file_dropdown.select('First Item')
+          Button:
+               text: 'Open'
+               size_hint_y: None
+               height: '24dp'
+          Button:
+               text: 'Save'
+               size_hint_y: None
+               height: '24dp'
+          Button:
+               text: 'Save As'
+               size_hint_y: None
+               height: '24dp'
+          Button:
+               text: 'Save Copy As'
+               size_hint_y: None
+               height: '24dp'
+          Button:
+               text: 'Import CSV'
+               size_hint_y: None
+               height: '24dp'
+          Button:
+               text: 'Export CSV'
+               size_hint_y: None
+               height: '24dp'
+          Button:
+               text: 'Exit'
+               size_hint_y: None
+               height: '24dp'
+               on_release: file_dropdown.select('Exit')
