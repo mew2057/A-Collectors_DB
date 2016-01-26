@@ -1,9 +1,7 @@
 # John Dunham
 import sys
-import tkinter as tk
+#import tkinter as tk
 from application.database_app import DatabaseApp
-
-
 
 
 def main():

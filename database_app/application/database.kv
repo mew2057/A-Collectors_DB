@@ -1,7 +1,6 @@
 #:kivy 1.9.1
 
 <DatabaseRoot>:
-     AnchorLayout:
           
      RootRibbon:
           pos: 0, root.top - self.height/2
@@ -19,45 +18,80 @@
           AnchorLayout:
                anchor_x:'left'
                anchor_y:'top'
-          
-          
-     DropDown:
-          id: file_dropdown
+               
+     FileDropDown:
           on_parent: self.dismiss()
-          on_resize: self.dismiss()
-          on_select: file_btn.text = '{}'.format(args[1])
-
+          id: file_dropdown
+          
           Button:
                text: 'New'
                size_hint_y: None
                height: '24dp'
-               on_release: file_dropdown.select('First Item')
+               on_release: file_dropdown.select('')
           Button:
                text: 'Open'
                size_hint_y: None
                height: '24dp'
+               on_release: file_dropdown.select('');file_dropdown.open_database()
           Button:
                text: 'Save'
                size_hint_y: None
                height: '24dp'
+               on_release: file_dropdown.select('')
           Button:
                text: 'Save As'
                size_hint_y: None
                height: '24dp'
+               on_release: file_dropdown.select('')
           Button:
                text: 'Save Copy As'
                size_hint_y: None
                height: '24dp'
+               on_release: file_dropdown.select('')
           Button:
                text: 'Import CSV'
                size_hint_y: None
                height: '24dp'
+               on_release: file_dropdown.select('')
           Button:
                text: 'Export CSV'
                size_hint_y: None
                height: '24dp'
+               on_release: file_dropdown.select('')
           Button:
                text: 'Exit'
                size_hint_y: None
                height: '24dp'
-               on_release: file_dropdown.select('Exit')
+               on_release: file_dropdown.select(''); app.stop();
+     
+<FileDropDown>:     
+     
+
+<LoadDialog>:
+     BoxLayout:
+          orientation:"vertical"
+          size: root.size
+          pos:  root.pos
+          
+          FileChooserListView:
+               id: filechooser
+               
+          BoxLayout:
+               size_hint_y: None
+               height: 64
+               padding: 14,14,24,14
+               spacing:24
+               
+               Button:
+                    text: "Load"
+                    on_release: root.load(filechooser.path, filechooser.selection)
+                    height:'14dp'               
+               
+               Button:
+                    text: "Cancel"
+                    on_release: root.close()
+                    height:'14dp'
+                    
+               Label:
+
+<SaveDialog>:
