@@ -6,6 +6,8 @@ import sqlite3
 import os
 import sys
 
+#import model.
+
 # A class that easily mutable.
 class Collectible(object):
     pass
@@ -40,8 +42,8 @@ class Model():
           
           self.series_table = 'Series'
           self.series_keys  = '''( _id INTEGER PRIMARY KEY AUTOINCREMENT, Series_Name TEXT, ShortName TEXT, Series_id INTEGER, FOREIGN KEY(Series_id) REFERENCES Series(_id))'''
-          self.series_create = '''( ?, ?, ?, ? )'''		
-          self.series_insert = '''( ?, ?, ? )'''		
+          self.series_create = '''( ?, ?, ?, ? )'''
+          self.series_insert = '''( ?, ?, ? )'''
           self.series_create_key = '''( Name, ShortName, Series_id )'''
 
 
@@ -68,7 +70,7 @@ class Model():
      # TODO make this more robust.
      def list_types(self, table_name):
           listtype = self.table_map[table_name][1]
-          type= self.table_map[table_name][0]
+          type     = self.table_map[table_name][0]
           
           #-1: no drop, 0: dropdown, 1: dropdown use another group 
           if listtype == -1:
@@ -79,24 +81,32 @@ class Model():
           else:
                # FIXME
                # Currently Series is the only one!
-               ## TODO parameterize this string!			
+               ## TODO parameterize this string!
                return self.dbcursor.execute('''WITH Root (_id) AS (SELECT DISTINCT Series.Series_id FROM ''' + table_name + ''' LEFT JOIN SERIES ON ''' + table_name\
                + '''.Series_id=Series._id ) SELECT Series.Name,Series._id FROM Root LEFT Join Series ON Root._id=Series._id''').fetchall(), type
      
+     '''
+     '''
      def list_all_default_entries(self, table_name):
           print ("SELECT " + self.controller.default_attributes + " from " + table_name)
-          return self.dbcursor.execute("SELECT " + self.controller.default_attributes + " from " + table_name)	
-          
+          return self.dbcursor.execute("SELECT " + self.controller.default_attributes + " from " + table_name 
+               + " inner join Series On Toy.Series_id = Series._id" )	
+     
+     '''
+     '''
      def list_entries(self, table_name, type):
           return self.dbcursor.execute("SELECT * from " + table_name + " WHERE type='" + type + "'" )		
      
+     '''
+     '''
      #SELECT Toy.Name, Series.Name, Toy.Count,Toy._id from Toy 
      #join Series On Toy.Series_id = Series._id
      def list_default_entries(self, table_name, type):
-          print("SELECT " + self.controller.default_attributes + " from " + table_name + " WHERE type='" + type + "'" )
-          return self.dbcursor.execute("SELECT " + self.controller.default_attributes + " from " + table_name + " WHERE type='" + type + "'" )		
+          return self.dbcursor.execute("SELECT " + self.controller.default_attributes + 
+               " from " + table_name + "join Series On Toy.Series_id = Series._id WHERE type='" + type + "'" )		
 
-          
+     '''
+     '''
      def set_active_table(self, table_name):
           if not self.dbcursor:
                return
@@ -105,8 +115,14 @@ class Model():
                     
           return self.dbcursor.execute("SELECT * from " + self.current_table).fetchall()
      
+     ''' Opens the database with the supplied file name. This closes the 
+     database if one is already open and replaces it with a new one.
+     
+     Keyword:
+     filename: The full path to the database file stored locally.
+     '''
      def open_db(self, filename):
-          # TODO try
+          # Grab the database information from the file name.
           self.databasefile = filename
           self.databasedir  = os.path.dirname(self.databasefile)
           

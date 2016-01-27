@@ -14,10 +14,10 @@ from tkinter import ttk
 class View():
      """The Main Application Window"""
      
-     def __init__(self, control):	
+     def __init__(self, control, user_settings):	
           # Set the controller for this view.
-          self.controller = control
-          
+          self.controller    = control
+          self.user_settings = user_settings
           self.menubar = tk.Menu(control.root)
           
           
@@ -78,7 +78,7 @@ class View():
           self.active_entry=""
           
      def show_collections(self, collections):
-          # First clear the previous collection list.		
+          # First clear the previous collection list.
           if self.category_collections_tree:
                self.category_collections_tree.destroy() 	
           
@@ -177,57 +177,60 @@ class View():
           print(item)
      
      ######################################
-     # Create File
+     # Create File                        #
      ######################################
      def new_file(self, path, filename, ext):
           return filedialog.asksaveasfilename(initialdir=path, initialfile=filename)
      
      ######################################
-     # New								 #
+     # New                                #
      ######################################
      def new_database(self):
           pass
           
           
      ######################################
-     # Open								 #
+     # Open                               #
      ######################################
      def open_database(self):
-          filename= filedialog.askopenfilename(filetypes=[('sqlite database', '.db')])
+          filename= filedialog.askopenfilename(
+               initialfile=self.user_settings.last_db, 
+               filetypes=[('sqlite database', '.db')])
+               
           if filename:
                self.controller.open_db(filename);
           
      
      ######################################
-     # Save								 #
+     # Save                               #
      ######################################
      def save_database(self):
           pass
      
      
      ######################################
-     # Save As							 #
+     # Save As                            #
      ######################################
      def save_database_as(self):
           pass
      
      
      ######################################
-     # Save Copy As						 #
+     # Save Copy As                       #
      ######################################
      def save_database_copy(self):
           pass
           
           
      ######################################
-     # Export CSV						 #
+     # Export CSV                         #
      ######################################
      def export_csv(self):
           pass
      
      
      ######################################
-     # Import CSV						 #
+     # Import CSV                         #
      ######################################
      def import_csv(self):
           ''' Imports a csv file to the application. '''
@@ -237,7 +240,7 @@ class View():
                self.controller.import_csv(filename)
           
      ######################################
-     # Quit      						 #
+     # Quit                               #
      ######################################
      def quit(self):
           pass

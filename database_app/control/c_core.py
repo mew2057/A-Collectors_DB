@@ -3,12 +3,18 @@
 
 import view.v_core as view
 import model.m_core as model
+import control.config as config
 
 class Application():
      def __init__(self, root):
           self.root  = root
-          self.view  = view.View(self)
+          self.config = config.Config('app_config.ini')
+          
+          self.view  = view.View(self, self.config.user_settings)
           self.model = model.Model(self)
+          
+          
+          
           #select Toy.Name, Series.Name,Toy.Count  from Toy  LEFT OUTER JOIN Series where Toy.Series_id=Series._id And Series.Series_id=1 
           # Gets only the root types of the members of the collection.
           # Series parameterization, assumes it has the Series_id column
@@ -17,8 +23,8 @@ class Application():
           # SELECT Series._id,Series.Name FROM Root LEFT Join Series ON Root._id=Series._id
 
           self.id_loc=3
-          self.default_attributes="Toy.Name,Series_id, Toy.Count,Toy._id"
-          self.entry_attributes=["Name","Series","Count"]
+          self.default_attributes="Toy.Name, Series.Name, Toy.Count,Toy._id"
+          self.entry_attributes=["Name","Series","Count","id"]
           
      def import_csv(self, file):
           self.model.import_csv(file)
@@ -28,6 +34,7 @@ class Application():
      
      def open_db(self, file):
           self.model.open_db(file)
+          self.config.user_settings.set_last_db(self.model.databasefile, self.model.databasedir)
      
      def open_table(self, table_name):
           print("Opening "+ table_name)

@@ -3,6 +3,8 @@ import sys
 import tkinter as tk
 import control.c_core as controller
 
+
+
 def main():
      root = tk.Tk() # Root Widget
      root.state('zoomed')
