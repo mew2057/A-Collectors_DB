@@ -11,8 +11,6 @@ import configparser
 
 class Config(object):
      
-     
-     
      """ Construct the database config object. Opens the supplied config file
      using standard .ini syntax. This function should not be overriden.
      

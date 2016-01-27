@@ -1,0 +1,60 @@
+{
+	
+	"List_Types" :
+	{
+		"dropdown"    : "SELECT Name,_id FROM %s WHERE %s _id=-1",
+		"other_group" : "WITH Root (_id) AS (SELECT DISTINCT %s FROM $ LEFT JOIN %s ON %s "
+	},
+	
+	"Collection_Queries" : 
+	{
+		"all_entries"    : "SELECT %s FROM %s INNER JOIN %s",
+		"subtype"        : "SELECT %s FROM %s WHERE %s = '%s'",
+		"filter_subtype" : "SELECT %s FROM %s INNER JOIN %s On %s WHERE %s"
+	},
+	
+	"Group_Queries":
+	{
+		
+	},
+	
+	"Tables": {
+		"Toy" : {
+			"build_keys" : "( _id INTEGER PRIMARY KEY AUTOINCREMENT, Name TEXT, Accessories TEXT, Defects TEXT, Description TEXT, Count INTEGER, MSRP INTEGER, Value INTEGER, GPS INTEGER, Childhood INTEGER, Replace INTEGER,Class_id INTEGER, Series_id INTEGER, Location_id INTEGER, FOREIGN KEY(Location_id) REFERENCES Location(_id), FOREIGN KEY(Series_id) REFERENCES Series(_id), FOREIGN KEY(Class_id) REFERENCES Class(_id) )",
+			"build_string" : "( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )",
+			"is_category" : 1,
+			"display_mode" : 1,
+			"group" : "Series",
+			"entry_headers" : ["Name", "Series", "Count", "id"],
+			"id_index": 3,
+			"select_attributes": "Toy.Name, Series.Name, Toy.Count, Toy._id",
+			"subtype_join"     : "Toy.Series_id = Series._id",
+			"subtype_condition": "Series.Series_id = %s OR Series._id = %s"
+		},
+              
+		"Series":{
+			"build_keys   " : "( _id INTEGER PRIMARY KEY AUTOINCREMENT, Series_Name TEXT, ShortName TEXT, Series_id INTEGER, FOREIGN KEY(Series_id) REFERENCES Series(_id) )",
+			"build_string " : "( ?, ?, ?, ? )",
+			"insert_keys  " : "( Name, ShortName, Series_id )",
+			"insert_string" : "( ?, ?, ? )",
+			"is_category  " : 0,
+			"display_mode " : 0
+		},
+		"Class":{       
+			"build_keys"    : "( _id INTEGER PRIMARY KEY AUTOINCREMENT, Name TEXT )",
+			"build_string"  : "( ? )",
+			"insert_keys"   : "( Name )",
+			"insert_string" : "( ? )",
+			"is_category"   : 0,
+			"display_mode"  : -1
+		},
+		"Location":{
+			"build_keys"   : "(  _id INTEGER PRIMARY KEY AUTOINCREMENT, Location_Name TEXT, Description TEXT, Images TEXT, MSRP INTEGER, Location_id INTEGER, FOREIGN KEY(Location_id) REFERENCES Location(_id) )",
+			"build_string" : "(?, ?, ?, ?, ?, ? )",
+			"insert_keys"  : "( _id, Name, Description, Images, MSRP, Location_id )",
+			"insert_string": "(?, ?, ?, ?, ?, ? )",
+			"is_category"  : 0,
+			"display_mod"  : -1
+		}
+	}
+}        

@@ -74,9 +74,12 @@ class View():
           
           # GUI options, may need to refine.
           self.active_collection=""
+          self.active_group=""
           self.active_type=""
           self.active_entry=""
-          
+
+     '''
+     '''
      def show_collections(self, collections):
           # First clear the previous collection list.
           if self.category_collections_tree:
@@ -89,7 +92,7 @@ class View():
                collection_name=collection[0]
                
                # Add the existing types.
-               types, category = self.controller.get_table_types(collection_name)
+               types, category = self.controller.get_table_subtypes(collection_name)
                
                if category == 1:
                     id=self.category_collections_tree.insert('', END, text=collection_name)
@@ -113,17 +116,22 @@ class View():
           self.category_groups_tree.bind("<Return>", self.open_group)
           self.category_groups_tree.grid(row=0, column=0)
      
+     '''
+     '''
      # I hope this is pass by reference...
      def show_entries(self, entries):
           if not entries:
                return
                
-          # First clear the previous entry list.		
+          # First clear the previous entry list.
           if self.entry_tree:
                self.entry_tree.destroy()
           
           # Remake the listbox 
-          self.entry_tree=ttk.Treeview(self.entry_frame, show="headings", columns=self.controller.entry_attributes)
+          self.entry_tree=ttk.Treeview(
+               self.entry_frame, 
+               show="headings", 
+               columns=self.controller.entry_attributes)
 
           # add the entry headings
           for col in self.controller.entry_attributes:
@@ -132,7 +140,10 @@ class View():
           # add the entry to the list.
           for entry in entries:
                # Parent, where, identifier, values.
-               self.entry_tree.insert('',END, entry[self.controller.id_loc], values=entry)	
+               self.entry_tree.insert('',
+                    END, 
+                    entry[self.controller.id_loc], 
+                    values=entry)
 
           
           self.entry_tree.bind("<Double-Button-1>", self.open_entry)
@@ -140,21 +151,25 @@ class View():
                
           self.entry_tree.grid(row=0, column=1, sticky="WENS")
 
+     '''
+     '''
      def open_group(self, event):
-          item     = self.category_collections_tree.identify('item',event.x,event.y)
-          parent   = self.category_collections_tree.parent(item)
+          item     = self.category_groups_tree.identify('item',event.x,event.y)
+          parent   = self.category_groups_tree.parent(item)
           
           if parent:
-               #self.active_type = self.category_collections_tree.item(item, "text")
-               #self.active_collection = self.category_collections_tree.item(parent, "text")
-               pass
-               #self.controller.open_type(self.active_collection, self.active_type)
+               self.active_type = self.category_groups_tree.item(item, "text")
+               self.active_group = self.category_groups_tree.item(parent, "text")
+               print (self.active_type)
+               self.controller.open_type(self.active_group, self.active_type)
           else:
-               #self.active_type = ""
-               #self.active_collection = self.category_collections_tree.item(item, "text")			
-               #self.controller.open_table(self.active_collection)
-               pass
+               self.active_type = ""
+               self.active_group = self.category_groups_tree.item(item, "text")
+               print (self.active_collection)
+               self.controller.open_table(self.active_group)
      
+     '''
+     '''
      def open_collection(self, event):
           item     = self.category_collections_tree.identify('item',event.x,event.y)
           parent   = self.category_collections_tree.parent(item)
@@ -162,14 +177,14 @@ class View():
           if parent:
                self.active_type = self.category_collections_tree.item(item, "text")
                self.active_collection = self.category_collections_tree.item(parent, "text")
-               
-               #self.controller.open_type(self.active_collection, self.active_type)
+               self.controller.open_subtype(self.active_collection, self.active_type)
           else:
                self.active_type = ""
                self.active_collection = self.category_collections_tree.item(item, "text")			
                self.controller.open_table(self.active_collection)
                
-
+     '''
+     '''
      def open_entry(self, event):
           item              = self.entry_tree.identify('item',event.x,event.y)
           self.active_entry = self.entry_tree.item(item, "text")

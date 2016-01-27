@@ -68,43 +68,47 @@ class Model():
           return self.dbcursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite%';").fetchall()
      
      # TODO make this more robust.
-     def list_types(self, table_name):
-          listtype = self.table_map[table_name][1]
-          type     = self.table_map[table_name][0]
+     def list_subtypes(self, table_name):
+          list_type      = self.table_map[table_name][1]
+          dropdown_type  = self.table_map[table_name][0]
           
           #-1: no drop, 0: dropdown, 1: dropdown use another group 
-          if listtype == -1:
-               return [], type
-          elif listtype == 0:
+          if list_type == -1:
+               return [], dropdown_type
+          elif list_type == 0:
                # TODO specialization
-               return self.dbcursor.execute("SELECT Name,_id from " + table_name + " where " + table_name+"_id=-1").fetchall(), type
+               return self.dbcursor.execute("SELECT Name,_id from " + table_name + " where " + table_name+"_id=-1").fetchall(), dropdown_type
           else:
+               print('''WITH Root (_id) AS (SELECT DISTINCT Series.Series_id FROM ''' + table_name + ''' LEFT JOIN SERIES ON ''' + table_name\
+               + '''.Series_id=Series._id ) SELECT Series.Name,Series._id FROM Root LEFT Join Series ON Root._id=Series._id''')
                # FIXME
                # Currently Series is the only one!
                ## TODO parameterize this string!
                return self.dbcursor.execute('''WITH Root (_id) AS (SELECT DISTINCT Series.Series_id FROM ''' + table_name + ''' LEFT JOIN SERIES ON ''' + table_name\
-               + '''.Series_id=Series._id ) SELECT Series.Name,Series._id FROM Root LEFT Join Series ON Root._id=Series._id''').fetchall(), type
+               + '''.Series_id=Series._id ) SELECT Series.Name,Series._id FROM Root LEFT Join Series ON Root._id=Series._id''').fetchall(), dropdown_type
      
      '''
      '''
-     def list_all_default_entries(self, table_name):
+     def list_table_entries(self, table_name):
           print ("SELECT " + self.controller.default_attributes + " from " + table_name)
           return self.dbcursor.execute("SELECT " + self.controller.default_attributes + " from " + table_name 
                + " inner join Series On Toy.Series_id = Series._id" )	
+  
+     ''' TODO make work with stuf other than series
      
      '''
-     '''
-     def list_entries(self, table_name, type):
-          return self.dbcursor.execute("SELECT * from " + table_name + " WHERE type='" + type + "'" )		
-     
-     '''
-     '''
-     #SELECT Toy.Name, Series.Name, Toy.Count,Toy._id from Toy 
-     #join Series On Toy.Series_id = Series._id
-     def list_default_entries(self, table_name, type):
-          return self.dbcursor.execute("SELECT " + self.controller.default_attributes + 
-               " from " + table_name + "join Series On Toy.Series_id = Series._id WHERE type='" + type + "'" )		
-
+     def list_subtype_entries(self, table_name, subtype):
+          subtype_cursor = self.dbcursor.execute(
+               "SELECT Series._id from Series Where Series.Name = '" + subtype + "'")
+          
+          subtype_id = str(subtype_cursor.fetchone()[0])
+               
+          return self.dbcursor.execute("SELECT " + 
+               self.controller.default_attributes +
+               " from " + table_name +
+               " inner join Series On Toy.Series_id = Series._id "
+               " WHERE Series.Series_id = " + subtype_id + " OR Series._id = " + subtype_id )
+          
      '''
      '''
      def set_active_table(self, table_name):
